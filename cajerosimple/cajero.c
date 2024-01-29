@@ -3,6 +3,7 @@
 #include <conio.h>
 #include <time.h>
 
+// define for different SO, the code needs an implementation for replace conio.h, so it cannot be used for linux
 #ifdef _WIN32
 #define CLEAR "cls"
 #else
@@ -121,7 +122,7 @@ int main()
             mov = realloc(mov, sizeof(char) * check);
             if (check >= 0 && check < 100)
             {
-                printf("Movimiento guardado: %s", mov);
+                //printf("Movimiento guardado: %s", mov);
             }
             movimientos[movnum++] = mov;
             movimientos = realloc(movimientos, sizeof(*movimientos) * movnum);
@@ -197,7 +198,7 @@ int main()
 
                         if (check >= 0 && check < 100)
                         {
-                            printf("Movimiento guardado: %s ==== check: %d\n", mov, check);
+                            //printf("Movimiento guardado: %s ==== check: %d\n", mov, check);
                         }
                         
                         movimientos[movnum++] = mov;
@@ -234,7 +235,7 @@ int main()
             char **head = movimientos;
             for (int i = 0; i < movnum; i++)
             {
-                printf("adress %p: ", head);
+                //printf("adress %p: ", head);
                 printf("MOV %d %s\n", i+1, head[i]);
             }
 

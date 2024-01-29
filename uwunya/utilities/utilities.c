@@ -1,7 +1,6 @@
-
-
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 /*
     Returns a pointer to a string of
@@ -94,4 +93,37 @@ void *copymemory(void *dest, const void *src, size_t count)
         --count;
     }
     return dest;
+}
+
+int strtoint(char *s)
+{
+    char c;
+    char *str;
+    str = s;
+    int count;
+    int num = 0;
+
+    while ((c = *(str++)) != '\0')
+    {
+        if (!(c >= '0' && c <= '9'))
+        {
+            return NULL;
+        }
+        count++;
+    }
+
+    for (int i = 0; i < count; i++)
+    {
+        num += (s[i]-48) * pow(10, count-i);
+    }
+
+    return num;
+}
+
+/*
+    Read CSV file and returns an array of 
+*/
+char **readCSV(FILE *fp)
+{
+    return NULL;
 }
