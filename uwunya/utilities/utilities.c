@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <conio.h>
 
 /*
     Returns a pointer to a string of
@@ -107,7 +108,7 @@ int strtoint(char *s)
     {
         if (!(c >= '0' && c <= '9'))
         {
-            return NULL;
+            return 0;
         }
         count++;
     }
@@ -126,4 +127,37 @@ int strtoint(char *s)
 char **readCSV(FILE *fp)
 {
     return NULL;
+}
+
+/*
+    Input a pin in pin format (it doesnt show the characters only the symbol)
+*/
+void pinInput(char *str, char symbol, int size)
+{
+    char *s;
+    s = str;
+
+    for (int i = 0; i < size; i++)
+    {
+        *(s++) = getch();
+        putchar(symbol);    
+    }
+    *s = '\0';
+}
+
+int compStr(char *str1, char *str2)
+{
+    char *s1, *s2;
+    s1 = str1;
+    s2 = str2;
+    while (*s1 != '\0' || *s2 != '\0')
+    {
+        if (*(s1++) != *(s2++))
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+
 }

@@ -12,4 +12,8 @@ void *copymemory(void *dest, const void *src, size_t count);
 
 char **readCSV(FILE *f);
 
+void pinInput(char *str, char symbol, int size);
+
+int compStr(char *str1, char *str2);
+
 #endif

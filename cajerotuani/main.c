@@ -6,11 +6,11 @@ int main()
 { 
     CAJERO *caj = initCAJERO("cajerotuani/accounts.csv", "cajerotuani/movements.csv");
 
-    if (caj == NULL)
-    {
-        printf("ERROR: COULDNT LOAD CAJERO");
-        return -1;
-    }
+    execCAJERO(caj);
+
+    float kk = caj->account->balance;
+
+    printf("kk : %f\n", kk);
 
     return 0;
 }

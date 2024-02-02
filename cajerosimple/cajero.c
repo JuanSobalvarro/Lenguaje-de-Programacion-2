@@ -12,38 +12,77 @@
 
 typedef const struct tm local;
 
+const int BILLVALUES[] = {1000, 500, 200, 100};
+int CUENTAS[] = {1000, 2000, 3000};
+
+void key2Exit();
+int initCajero();
+int printMenu();
+void saveMovement(int cuentaSelected, int amount, char **movimientos, int *movNumber, char *movementType);
+void consulta(int cuentaSelect, char **movimientos, int *movnum, int *billQuantity);
+void deposito(int cuentaSelect, char **movimientos, int *movnum, int *billQuantity);
+void retiro(int cuentaSelect, char **movimientos, int *movnum, int *billQuantity);
+void movimientos(int cuentaSelect, char **movimientos, int *movnum, int *billQuantity);
+void callAction(int selection, int cuentaSelect, char **mov, int *movnum, int *billQuantity);
+
 int main()
 {
-    int exit = 1;
-    // billetes de 1000, 500, 200, 100
-    int billval[] = {1000, 500, 200, 100};
-    int billetes[] = {5, 5, 5, 5};
-    float cuentas[] = {1000.0, 2000.0, 3000.0};
+    int billQuantity[] = {5, 5, 5, 5};
     char **movimientos; // format: DD.MM.YY HH.MM.SS IDCUENTA MOVEMENTTYPE QUANTITY
     int movnum = 0;
-    int cuenta_select = -1;
-    int countpass = 0;
-    int equal;
+    int cuentaSelect = -1;
 
     movimientos = realloc(NULL, sizeof(*movimientos) * movnum);
-
     if (!movimientos)
     {
         printf("COULDNT REALLOCATE MEMORY UWUNYA\n");
         return -1;
     }
 
-    printf("===================Cajero Automatico===================\n");
-    printf("Ingrese su numero de cuenta(1-3): ");
-    scanf("%d", &cuenta_select);
-    if (!(cuenta_select >= 1 && cuenta_select <= 3))
+    if((cuentaSelect = initCajero()) == -1)
     {
-        printf("Cuenta no valida\n");
         return 0;
     }
-    cuenta_select--;
+
+    int selection;
+    while ((selection = printMenu()) != 5)
+    {   
+        callAction(selection, cuentaSelect, movimientos, &movnum, billQuantity);
+    }
+
+    // free MEMORY
+    while (movimientos)
+    {
+        free(*(movimientos++));
+    }
+    free(movimientos);
+
+    return 0;
+}
+
+void key2Exit()
+{
+    printf("\nPresione cualquier tecla para continuar\n");
+    getchar();
+    getchar();
+}
+
+int initCajero()
+{
+    int cuentaSelected;
+    printf("===================Cajero Automatico===================\n");
+    printf("Ingrese su numero de cuenta(1-3): ");
+    scanf("%d", &cuentaSelected);
+    if (cuentaSelected < 1 || cuentaSelected > 3)
+    {
+        printf("Cuenta no valida\n");
+        return -1;
+    }
+    cuentaSelected--;
     getchar();
 
+    int equal;
+    int countpass = 0;
     do
     {
         equal = 1;
@@ -65,198 +104,172 @@ int main()
             countpass++;
             if (countpass < 3)
             {
-                printf("\nPin incorrecto. Intente otra vez.");
+                printf("\nPin incorrecto. Intente otra vez.\n");
             }
             else
             {
                 printf("\nPor seguridad la cuenta ha sido bloqueada\n");
-                return 0;
+                return -1;
             }
         }
         printf("\n");
     } while (!equal);
+
+    return cuentaSelected;
+}
+
+int printMenu()
+{
+    system(CLEAR);
+    int select;
+    printf("===================Cajero Automatico===================\n");
+    printf("1. Consulta\n2. Deposito\n3. Retiro\n4. Movimientos\n5. Salir\n");
+    printf("=======================================================\n");
+
+    scanf("%d", &select);
+
+    return select - 1;
+}
+
+void saveMovement(int cuentaSelected, int amount, char **movimientos, int *movNumber, char *movementType)
+{
+    time_t raw = time(NULL);
+    local *loc = localtime(&raw);
+    char *mov;
+    mov = malloc(sizeof(char) * 100);
+    int check = snprintf(mov, 100, "%d.%d.%d %d:%d:%d AccountID: %d %s %d", 
+                            loc->tm_mday, loc->tm_mon + 1, loc->tm_year + 1900, 
+                            loc->tm_hour, loc->tm_min, loc->tm_sec, 
+                            cuentaSelected, movementType, amount);
     
+    if (check <= 0)
+    {
+        printf("ERROR creating string movement");
+        return;
+    }
 
-    while (exit == 1)
-    {   
-        system(CLEAR);
-        int select;
-        printf("===================Cajero Automatico===================\n");
-        printf("1. Consulta\n2. Deposito\n3. Retiro\n4. Movimientos\n5. Salir\n");
-        printf("=======================================================\n");
+    mov = realloc(mov, sizeof(char) * check);
 
-        scanf("%d", &select);
+    movimientos[*movNumber] = mov;
+    *movNumber += 1;
+    movimientos = realloc(movimientos, sizeof(*movimientos) * (*movNumber));
 
-        switch (select)
+
+    if (!movimientos)
+    {
+        printf("COULDNT REALLOCATE MEMORY UWUNYA\n");
+    }
+}
+
+void consulta(int cuentaSelect, char **movimientos, int *movnum, int *billQuantity)
+{
+    system(CLEAR);
+    printf("===================Cajero Automatico===================\n");
+    printf("CONSULTA\n");
+    printf("Su saldo actual es de: %d\n", CUENTAS[cuentaSelect]);
+    printf("=======================================================\n");
+
+    key2Exit();
+}
+
+void deposito(int cuentaSelect, char **movimientos, int *movnum, int *billQuantity)
+{
+    system(CLEAR);
+    int deposit;
+    printf("===================Cajero Automatico===================\n");
+    printf("DEPOSITO\n");
+    printf("Cuanto desea depositar?\n");
+    scanf("%d", &deposit);
+
+    if (deposit%100 != 0)
+    {
+        printf("\nNumero ingresado no valido\n");
+        key2Exit();
+        return;
+    }
+    CUENTAS[cuentaSelect] += deposit;
+    printf("Depositado correctamente %d\n", deposit);
+    printf("Saldo actual: %d\n", CUENTAS[cuentaSelect]);
+
+    saveMovement(cuentaSelect, deposit, movimientos, movnum, "Deposito");
+    key2Exit();
+}
+
+void retiro(int cuentaSelect, char **movimientos, int *movnum, int *billQuantity)
+{
+    
+    system(CLEAR);
+    int retire;
+    printf("===================Cajero Automatico===================\n");
+    printf("RETIRO\n");
+    printf("Cuanto desea retirar(multiplos de 100)?\n");
+    scanf("%d", &retire);
+
+    //printf("\ntotal%d\n", retire);
+
+    //float total = 0;
+    //int retire2 = retire;
+    if (CUENTAS[cuentaSelect] - retire < 0)
+    {
+        printf("\nFONDOS NO SUFICIENTES\n");
+        return; 
+    }
+
+    if (retire%100 != 0)
+    {
+        printf("\nNumero ingresado no valido\n");
+        return;
+    } 
+
+    int retireBill[] = {0, 0, 0, 0};
+    for (int i = 0; i < 4; i++)
+    {
+        retireBill[i] = (int)retire/BILLVALUES[i];
+        retire -= retireBill[i] * BILLVALUES[i];
+        //printf("\nretirando:%d de %d", retireBill[i], BILLVALUES[i]);
+        if (retireBill[i] > billQuantity[i])
         {
-        case 1:
-            system(CLEAR);
-            printf("===================Cajero Automatico===================\n");
-            printf("CONSULTA\n");
-            printf("Su saldo actual es de: %f\n", cuentas[cuenta_select]);
-            printf("=======================================================\n");
-            printf("\nPresione cualquier tecla para continuar\n");
-            getchar();
-            getchar();
-            break;
-        
-        case 2:
-            system(CLEAR);
-            float deposit;
-            printf("===================Cajero Automatico===================\n");
-            printf("DEPOSITO\n");
-            printf("Cuanto desea depositar?\n");
-            scanf("%f", &deposit);
-            cuentas[cuenta_select] += deposit;
-            printf("Depositado correctamente %f\n", deposit);
-
-            // save movement
-            time_t raw = time(NULL);
-            local *loc = localtime(&raw);
-            char *mov;
-            mov = malloc(sizeof(char) * 100);
-            int check = snprintf(mov, 100, "%d.%d.%d %d:%d:%d AccountID: %d DEPOSITO %f", 
-                                    loc->tm_mday, loc->tm_mon + 1, loc->tm_year + 1900, 
-                                    loc->tm_hour, loc->tm_min, loc->tm_sec, 
-                                    cuenta_select, deposit);
-            mov = realloc(mov, sizeof(char) * check);
-            if (check >= 0 && check < 100)
-            {
-                //printf("Movimiento guardado: %s", mov);
-            }
-            movimientos[movnum++] = mov;
-            movimientos = realloc(movimientos, sizeof(*movimientos) * movnum);
-
-
-            if (!movimientos)
-            {
-                printf("COULDNT REALLOCATE MEMORY UWUNYA\n");
-                return -1;
-            }
-
-            printf("\nPresione cualquier tecla para continuar\n");
-            getchar();
-            getchar();
-            break;
-
-        case 3:
-            system(CLEAR);
-            int retire;
-            printf("===================Cajero Automatico===================\n");
-            printf("RETIRO\n");
-            printf("Cuanto desea retirar(multiplos de 100)?\n");
-            scanf("%d", &retire);
-
-            //printf("\ntotal%d\n", retire);
-
-            //float total = 0;
-            //int retire2 = retire;
-            if (cuentas[cuenta_select] - retire >= 0)
-            {
-                if (retire%100 == 0)
-                {
-                    int retireBill[] = {0, 0, 0, 0};
-                    int tran = 1;
-                    for (int i = 0; i < 4; i++)
-                    {
-                        retireBill[i] = (int)retire/billval[i];
-                        retire -= retireBill[i] * billval[i];
-                        //printf("\nretirando:%d de %d", retireBill[i], billval[i]);
-                        if (retireBill[i] > billetes[i])
-                        {
-                            printf("\nNo hay billetes suficientes en el cajero para la transaccion\n");
-                            tran = 0;
-                            break;
-                        }
-                    }
-                    
-                    if (tran)
-                    {   
-                        int total_retirado = 0;
-                        for (int i = 0; i < 4; i++)
-                        {
-                            int sum = retireBill[i] * billval[i];
-                            printf("Billetes de %d: %d\n", billval[i], retireBill[i]);
-                            billetes[i] -= retireBill[i];
-                            //printf("\nVariable sum: %d de tama;o %d\n", sum, sizeof(int));
-                            total_retirado += sum;
-                        }
-                        cuentas[cuenta_select] -= total_retirado;
-                        printf("\nSe retiraron exitosamente %d\n", total_retirado);
-                        printf("Saldo actual: %f\n", cuentas[cuenta_select]);
-
-                        // save movement
-                        time_t raw = time(NULL);
-                        local *loc = localtime(&raw);
-                        char *mov;
-                        mov = malloc(sizeof(char) * 100);
-                        int check = snprintf(mov, 100, "%d.%d.%d %d:%d:%d AccountID: %d RETIRO %d.00", 
-                                                loc->tm_mday, loc->tm_mon + 1, loc->tm_year + 1900, 
-                                                loc->tm_hour, loc->tm_min, loc->tm_sec, 
-                                                cuenta_select, total_retirado);
-                        mov = realloc(mov, sizeof(char) * check);
-
-                        if (check >= 0 && check < 100)
-                        {
-                            //printf("Movimiento guardado: %s ==== check: %d\n", mov, check);
-                        }
-                        
-                        movimientos[movnum++] = mov;
-                        movimientos = realloc(movimientos, sizeof(*movimientos) * movnum);
-
-
-                        if (!movimientos)
-                        {
-                            printf("COULDNT REALLOCATE MEMORY UWUNYA\n");
-                            return -1;
-                        }
-                    }
-                }
-                else
-                {
-                    printf("\nNumero ingresado no valido\n");
-                }
-            }
-            else
-            {
-                printf("\nFONDOS NO SUFICIENTES\n");
-            }
-
-            printf("\nPresione cualquier tecla para continuar\n");
-            getchar();
-            getchar();
-            break;
-
-        case 4:
-            system(CLEAR);
-            printf("===================Cajero Automatico===================\n");
-            printf("===============HISTORIAL DE MOVIMIENTOS================\n\n");
-
-            char **head = movimientos;
-            for (int i = 0; i < movnum; i++)
-            {
-                //printf("adress %p: ", head);
-                printf("MOV %d %s\n", i+1, head[i]);
-            }
-
-            printf("\nPresione cualquier tecla para continuar\n");
-            getchar();
-            getchar();
-            break;
-
-        default:
-            printf("\nSALIENDO\n");
-            exit = 0;
-            break;
+            printf("\nNo hay billetes suficientes en el cajero para la transaccion\n");
+            return;
         }
     }
-
-    // free MEMORY
-    while (movimientos)
+    int total_retirado = 0;
+    for (int i = 0; i < 4; i++)
     {
-        free(*(movimientos++));
+        int sum = retireBill[i] * BILLVALUES[i];
+        printf("Billetes de %d: %d\n", BILLVALUES[i], retireBill[i]);
+        billQuantity[i] -= retireBill[i];
+        //printf("\nVariable sum: %d de tama;o %d\n", sum, sizeof(int));
+        total_retirado += sum;
     }
-    free(movimientos);
+    CUENTAS[cuentaSelect] -= total_retirado;
+    printf("\nSe retiraron exitosamente %d\n", total_retirado);
+    printf("Saldo actual: %d\n", CUENTAS[cuentaSelect]);
 
-    return 0;
+    saveMovement(cuentaSelect, total_retirado, movimientos, movnum, "Retiro");
+
+    key2Exit();
+}
+
+void movimientos(int cuentaSelect, char **movimientos, int *movnum, int *billQuantity)
+{
+    system(CLEAR);
+    printf("===================Cajero Automatico===================\n");
+    printf("===============HISTORIAL DE MOVIMIENTOS================\n\n");
+
+    char **head = movimientos;
+    for (int i = 0; i < *movnum; i++)
+    {
+        //printf("adress %p: ", head);
+        printf("MOV %d %s\n", i+1, head[i]);
+    }
+
+    key2Exit();
+}
+
+void callAction(int selection, int cuentaSelect, char **mov, int *movnum, int *billQuantity)
+{
+    void (*functionsPtr[])(int, char**, int*, int*) = {consulta, deposito, retiro, movimientos}; 
+
+    functionsPtr[selection](cuentaSelect, mov, movnum, billQuantity);
 }
