@@ -172,9 +172,35 @@ void saveMovement(CAJERO *c, int amount, char *type)
     fclose(movementsFile);
 }
 
-void updateAccount(ACCOUNT *account)
+/*
+    Update balance in account by copying data 
+*/
+void updateBalance(CAJERO *cajero, int newbalance)
 {
-    
+    FILE *fp = fopen(cajero, "w+");
+    char buffer[100];
+
+    if (!fp)
+    {
+        printf("ERROR:UPDATEBALANCE: OPENING CSV FILE\n");
+        return;
+    }
+
+    if(!fgets(buffer, sizeof(buffer), fp))
+    {
+        printf("ERROR: READING BUFFER FROM CSV FILE\n");
+        return;
+    }
+
+    while(fgets(buffer, sizeof(buffer), fp))
+    {
+        if (strcmp(strtok(buffer, ","), cajero->account->id) == 0)
+        {
+            fprintf(fp, "%s,%s,%s,%d\n", cajero->account->id, cajero->account->pin, cajero->account->name, newbalance);
+        }   
+    }
+
+    printf("ERROR: ACCOUNT NOT FOUND\n");
 }
 
 static inline void key2Exit()
@@ -216,7 +242,9 @@ static inline void deposit(CAJERO *c)
         }
     }
 
-    updateAccount(c->account);
+
+    c->account->balance += deposit;
+    updateBalanceCSV(c);
     saveMovement(c, deposit, "DEPOSIT");
 
     key2Exit();

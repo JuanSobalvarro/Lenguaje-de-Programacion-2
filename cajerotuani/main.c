@@ -8,9 +8,5 @@ int main()
 
     execCAJERO(caj);
 
-    float kk = caj->account->balance;
-
-    printf("kk : %f\n", kk);
-
     return 0;
 }
