@@ -23,7 +23,7 @@ static inline ACCOUNT **getACCOUNTS(FILE *fp, int *numAccounts)
     while (fgets(buffer, sizeof(buffer), fp))
     {
         ACCOUNT *a = malloc(sizeof(ACCOUNT));
-        printf("Buffer : %s\n", buffer);
+        //printf("Buffer : %s\n", buffer);
         
         data = strtok(buffer, ",");
         copymemory(a->id, data, 5);
@@ -71,10 +71,10 @@ static inline ACCOUNT *initSession(ACCOUNT **accounts, int size)
         for (int i = 0; i < size; i++)
         {
             // check for a account that matches the id
-            printf("\nA: %sa?: %s\n", accounts[i]->id, cid);
+            //printf("\nA: %sa?: %s\n", accounts[i]->id, cid);
             if (strcmp(cid, accounts[i]->id) == 0)
             {
-                printf("ACCOUNT FOUND\n");
+                //printf("ACCOUNT FOUND\n");
                 a = accounts[i];
                 if (strcmp(cpin, accounts[i]->pin) != 0)
                 {
@@ -105,7 +105,15 @@ CAJERO *initCAJERO(char *accPATH, char *movPATH, char *tempPath)
     if (c == NULL)
     {
         printf("LA CAGASTE HEAVY\n");
+        return NULL;
     }
+
+    // initialize variables
+    int bills[] = {10, 10, 10, 10};
+    int billsVal[] = {1000, 500, 200, 100};  
+
+    c->bills = bills;
+    c->billsVal = billsVal;
     c->accountsPath = accPATH;
     c->movementsPath = movPATH;
     c->tempPath = tempPath;
@@ -193,20 +201,30 @@ void updateBalance(CAJERO *cajero, int newbalance)
         printf("ERROR:UPDATEBALANCE: READING HEADER BUFFER FROM CSV FILE\n");
         return;
     }
-    fprintf(newFile, "%s\n", buffer);
+    fprintf(newFile, "%s", buffer);
 
     while(fgets(buffer, sizeof(buffer), fp))
     {
-        if (strcmp(strtok(buffer, ","), cajero->account->id) == 0)
+        char nbuffer[100];
+        strcpy(nbuffer, buffer);
+        char *tok = strtok(nbuffer, ",");
+        //printf("buffer: %s\n", buffer);
+        if (strcmp(tok, cajero->account->id) == 0)
         {
             fprintf(newFile, "%s,%s,%s,%d\n", cajero->account->id, cajero->account->pin, cajero->account->name, newbalance);
-            break;
+
         }
-        fprintf(newFile, "%s\n", buffer);   
+        else
+        {
+            fprintf(newFile, "%s", buffer);   
+        }  
     }
 
     fclose(fp);
     fclose(newFile);
+    remove(cajero->accountsPath);
+    rename(cajero->tempPath, cajero->accountsPath);
+    remove(cajero->tempPath);
     //printf("ERROR: ACCOUNT NOT FOUND\n");
 }
 
@@ -274,14 +292,51 @@ static inline void retire(CAJERO *c)
             printf("Numero no valido. Ingrese de nuevo\n");
         }
     }
+    c->account->balance -= retire;
+    updateBalance(c, c->account->balance);
+    saveMovement(c, retire, "RETIRE");
 
     key2Exit();
 }
 
 static inline void movements(CAJERO *c)
 {
+    FILE *movCSV = fopen(c->movementsPath, "r");
+
+    if (!movCSV)
+    {
+        printf("ERROR::MOVEMENTS:: OPENING CSV FILE AT %s\n", c->movementsPath);
+        return;
+    }
+
+    char buffer[100];
+
     system("cls");
     printf("====================MOVEMENTS====================\n");
+
+    fgets(buffer, sizeof(buffer), movCSV);
+
+    int i = 0;
+    while(fgets(buffer, sizeof(buffer), movCSV))
+    {
+        char nbuffer[100];
+        char *data;
+        strcpy(nbuffer, buffer);
+
+        data = strtok(nbuffer, ",");
+        printf("Mov %d: %s ", i+1, data);
+
+        data = strtok(NULL, ",");
+        printf("%s ", data);
+
+        data = strtok(NULL, ",");
+        printf("%s ", data);
+
+        data = strtok(NULL, ",");
+        printf("%s\n", data);
+
+        i++;
+    }
 
     key2Exit();
 }

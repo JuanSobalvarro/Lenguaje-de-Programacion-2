@@ -7,7 +7,7 @@
 #include <string.h>
 #include <time.h>
 
-#include "./uwunya/utilities/utilities.h"
+#include "../uwunya/utilities/utilities.h"
 
 typedef struct tm local;
 
@@ -22,8 +22,8 @@ typedef struct ACCOUNT
 typedef struct CAJERO
 {
     ACCOUNT *account;
-    int bills[4]; // quantity of each bills in the atm
-    int billsVal[4]; // values of bills
+    int *bills; // quantity of each bills in the atm
+    int *billsVal; // values of bills
     char *accountsPath; // csv path of accounts
     char *movementsPath; // csv path of movements
     char *tempPath;

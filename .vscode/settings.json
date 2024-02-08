@@ -6,6 +6,8 @@
         "utilities.h": "c",
         "stdio.h": "c",
         "time.h": "c",
-        "cajero.h": "c"
+        "cajero.h": "c",
+        "array": "c",
+        "string": "c"
     }
 }
