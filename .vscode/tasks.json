@@ -6,7 +6,7 @@
             "command": "gcc",
             "args": [
                 "-o",
-                "${fileBasenameNoExtension}",
+                "cajerotuani/main.exe",
                 "${file}",
                 "${workspaceFolder}\\uwunya\\menu\\menu.c",
                 "${workspaceFolder}\\uwunya\\utilities\\utilities.c",

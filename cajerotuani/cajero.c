@@ -19,7 +19,7 @@ static inline ACCOUNT **getACCOUNTS(FILE *fp, int *numAccounts)
         printf("ERROR: READING BUFFER FROM CSV FILE\n");
         return NULL;
     }
-    printf("Accounts csv opened with headers: %s\n", buffer);
+    //printf("Accounts csv opened with headers: %s\n", buffer);
     while (fgets(buffer, sizeof(buffer), fp))
     {
         ACCOUNT *a = malloc(sizeof(ACCOUNT));
@@ -36,7 +36,7 @@ static inline ACCOUNT **getACCOUNTS(FILE *fp, int *numAccounts)
         copymemory(a->name, data, 10);
 
         data = strtok(NULL, ",");
-        a->balance = strtof(data, NULL);
+        a->balance = atoi(data);
 
         array[arrlen++] = a;
         array = realloc(array, sizeof(ACCOUNT**) * arrlen);
@@ -64,10 +64,12 @@ static inline ACCOUNT *initSession(ACCOUNT **accounts, int size)
         //system("cls");
         printf("======================ATM======================\n");
         printf("Ingrese su ID: ");
-        scanf("%s", cid);
+        scanf("%4s", cid);
+        //printf("id in: %s\n", cid);
         printf("Ingrese su pin: ");
         pinInput(cpin, '*', 4);
 
+        int accountFound = 0;
         for (int i = 0; i < size; i++)
         {
             // check for a account that matches the id
@@ -75,6 +77,7 @@ static inline ACCOUNT *initSession(ACCOUNT **accounts, int size)
             if (strcmp(cid, accounts[i]->id) == 0)
             {
                 //printf("ACCOUNT FOUND\n");
+                accountFound = 1;
                 a = accounts[i];
                 if (strcmp(cpin, accounts[i]->pin) != 0)
                 {
@@ -85,6 +88,10 @@ static inline ACCOUNT *initSession(ACCOUNT **accounts, int size)
                 pass = 1;
                 break;
             }
+        }
+        if (accountFound == 0)
+        {
+            printf("Cuenta no encontrada");
         }
         if (tries == 0)
         {
@@ -112,8 +119,11 @@ CAJERO *initCAJERO(char *accPATH, char *movPATH, char *tempPath)
     int bills[] = {10, 10, 10, 10};
     int billsVal[] = {1000, 500, 200, 100};  
 
-    c->bills = bills;
-    c->billsVal = billsVal;
+    for (int i = 0; i < 4; i++)
+    {
+        c->bills[i] = bills[i];
+        c->billsVal[i] = billsVal[i];
+    }
     c->accountsPath = accPATH;
     c->movementsPath = movPATH;
     c->tempPath = tempPath;
@@ -178,6 +188,7 @@ void saveMovement(CAJERO *c, int amount, char *type)
     }
     fwrite(mov, check, 1, movementsFile);
 
+    //printf("SAVED SUCCESFULLY\n");
     fclose(movementsFile);
 }
 
@@ -196,19 +207,26 @@ void updateBalance(CAJERO *cajero, int newbalance)
         return;
     }
 
-    if(!fgets(buffer, sizeof(buffer), fp))
+    if (!newFile)
+    {
+        printf("ERROR:UPDATEBALANCE: OPENING TEMP CSV FILE\n");
+        return;
+    }
+
+    if(fgets(buffer, sizeof(buffer), fp) == NULL)
     {
         printf("ERROR:UPDATEBALANCE: READING HEADER BUFFER FROM CSV FILE\n");
         return;
     }
+    //printf("%s\n", buffer);
     fprintf(newFile, "%s", buffer);
 
     while(fgets(buffer, sizeof(buffer), fp))
     {
+        //printf("buffer: %s\n", buffer);
         char nbuffer[100];
         strcpy(nbuffer, buffer);
         char *tok = strtok(nbuffer, ",");
-        //printf("buffer: %s\n", buffer);
         if (strcmp(tok, cajero->account->id) == 0)
         {
             fprintf(newFile, "%s,%s,%s,%d\n", cajero->account->id, cajero->account->pin, cajero->account->name, newbalance);
@@ -219,6 +237,7 @@ void updateBalance(CAJERO *cajero, int newbalance)
             fprintf(newFile, "%s", buffer);   
         }  
     }
+    //printf("BALANCE UPDATED SUCCESFULLY\n");
 
     fclose(fp);
     fclose(newFile);
@@ -235,6 +254,31 @@ static inline void key2Exit()
     getchar();
 }
 
+static inline int desglose(CAJERO *c, int retiring)
+{
+    int retireBill[] = {0,0,0,0};
+    for (int i = 0; i < 4; i++)
+    {
+        retireBill[i] = (int)retiring/c->billsVal[i];
+        retiring -= retireBill[i] * c->billsVal[i];
+        if (retireBill[i] != 0)
+        {
+            printf("Retirando:%d de %d\n", retireBill[i], c->billsVal[i]);
+        }
+        if (retireBill[i] > c->bills[i])
+        {
+            return 0;
+        }
+    }
+    // si es posible la transaccion restar los bills al cajero
+    for (int i = 0; i < 4; i++)
+    {
+        c->bills[i] -= retireBill[i];
+    }
+    //printf("desglose made\n");
+    return 1;
+}
+
 // ACTIONS PART
 
 static inline void consult(CAJERO *c)
@@ -244,7 +288,7 @@ static inline void consult(CAJERO *c)
 
     printf("AccountID: %s\n", c->account->id);
     printf("Name: %s\n", c->account->name);
-    printf("Balance: $%f\n", c->account->balance);
+    printf("Balance: $%d\n", c->account->balance);
 
     key2Exit();
 }
@@ -283,14 +327,19 @@ static inline void retire(CAJERO *c)
 
     while (retire%100 != 0)
     {
+        char buffer[100];
         printf("====================RETIRE====================\n");
         printf("Cuanto desea retirar (multiplo de 100)?\n");
+        // checkear si el retire es valido tanto en numero como en desglose de billete
         scanf("%d", &retire);
 
-        if (retire%100 != 0 || retire < 0)
+        if (retire%100 != 0 || retire < 0 || !desglose(c, retire))
         {
             printf("Numero no valido. Ingrese de nuevo\n");
+            continue;
         }
+
+        
     }
     c->account->balance -= retire;
     updateBalance(c, c->account->balance);
@@ -340,6 +389,8 @@ static inline void movements(CAJERO *c)
 
     key2Exit();
 }
+
+
 
 void selectAction(CAJERO *cajero, int selection)
 {
