@@ -7,7 +7,7 @@
 #include <string.h>
 #include <time.h>
 
-#include "C:/Clases/3.er Año/Primer Cuatrimestre/Lenguaje de Programacion 2/uwunya/utilities/utilities.h"
+#include "./uwunya/utilities/utilities.h"
 
 typedef struct tm local;
 
