@@ -26,9 +26,10 @@ typedef struct CAJERO
     int billsVal[4]; // values of bills
     char *accountsPath; // csv path of accounts
     char *movementsPath; // csv path of movements
+    char *tempPath;
 } CAJERO;
 
-CAJERO *initCAJERO(char *accPATH, char *movPATH);
+CAJERO *initCAJERO(char *accPATH, char *movPATH, char *tempPath);
 
 void *execCAJERO(CAJERO *caj);
 

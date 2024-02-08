@@ -98,7 +98,7 @@ static inline ACCOUNT *initSession(ACCOUNT **accounts, int size)
 /*
     Initialize cajero
 */
-CAJERO *initCAJERO(char *accPATH, char *movPATH)
+CAJERO *initCAJERO(char *accPATH, char *movPATH, char *tempPath)
 {
     CAJERO *c;
     c = malloc(sizeof(CAJERO));
@@ -108,6 +108,7 @@ CAJERO *initCAJERO(char *accPATH, char *movPATH)
     }
     c->accountsPath = accPATH;
     c->movementsPath = movPATH;
+    c->tempPath = tempPath;
 
     FILE *accf = fopen(accPATH, "r");
     if (accf == NULL)
@@ -177,7 +178,8 @@ void saveMovement(CAJERO *c, int amount, char *type)
 */
 void updateBalance(CAJERO *cajero, int newbalance)
 {
-    FILE *fp = fopen(cajero, "w+");
+    FILE *fp = fopen(cajero->accountsPath, "r");
+    FILE *newFile = fopen(cajero->tempPath, "w");
     char buffer[100];
 
     if (!fp)
@@ -188,19 +190,24 @@ void updateBalance(CAJERO *cajero, int newbalance)
 
     if(!fgets(buffer, sizeof(buffer), fp))
     {
-        printf("ERROR: READING BUFFER FROM CSV FILE\n");
+        printf("ERROR:UPDATEBALANCE: READING HEADER BUFFER FROM CSV FILE\n");
         return;
     }
+    fprintf(newFile, "%s\n", buffer);
 
     while(fgets(buffer, sizeof(buffer), fp))
     {
         if (strcmp(strtok(buffer, ","), cajero->account->id) == 0)
         {
-            fprintf(fp, "%s,%s,%s,%d\n", cajero->account->id, cajero->account->pin, cajero->account->name, newbalance);
-        }   
+            fprintf(newFile, "%s,%s,%s,%d\n", cajero->account->id, cajero->account->pin, cajero->account->name, newbalance);
+            break;
+        }
+        fprintf(newFile, "%s\n", buffer);   
     }
 
-    printf("ERROR: ACCOUNT NOT FOUND\n");
+    fclose(fp);
+    fclose(newFile);
+    //printf("ERROR: ACCOUNT NOT FOUND\n");
 }
 
 static inline void key2Exit()
@@ -226,7 +233,7 @@ static inline void consult(CAJERO *c)
 
 static inline void deposit(CAJERO *c)
 {
-    int deposit;
+    int deposit = -1;
     system("cls");
     
 
@@ -236,7 +243,7 @@ static inline void deposit(CAJERO *c)
         printf("Cuanto desea depositar (multiplo de 100)?\n");
         scanf("%d", &deposit);
 
-        if (deposit%100 != 0)
+        if (deposit%100 != 0 || deposit < 0)
         {
             printf("Numero no valido. Ingrese de nuevo\n");
         }
@@ -244,7 +251,7 @@ static inline void deposit(CAJERO *c)
 
 
     c->account->balance += deposit;
-    updateBalanceCSV(c);
+    updateBalance(c, c->account->balance);
     saveMovement(c, deposit, "DEPOSIT");
 
     key2Exit();
@@ -252,8 +259,21 @@ static inline void deposit(CAJERO *c)
 
 static inline void retire(CAJERO *c)
 {
+    int retire = -1;
     system("cls");
-    printf("====================RETIRE====================\n");
+    
+
+    while (retire%100 != 0)
+    {
+        printf("====================RETIRE====================\n");
+        printf("Cuanto desea retirar (multiplo de 100)?\n");
+        scanf("%d", &retire);
+
+        if (retire%100 != 0 || retire < 0)
+        {
+            printf("Numero no valido. Ingrese de nuevo\n");
+        }
+    }
 
     key2Exit();
 }
@@ -286,6 +306,7 @@ void *execCAJERO(CAJERO *caj)
 
     while (1)
     {
+        selection = -1;
         system("cls");
         do
         {

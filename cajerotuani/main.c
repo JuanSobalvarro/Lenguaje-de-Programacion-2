@@ -4,7 +4,7 @@
 
 int main()
 { 
-    CAJERO *caj = initCAJERO("cajerotuani/accounts.csv", "cajerotuani/movements.csv");
+    CAJERO *caj = initCAJERO("cajerotuani/accounts.csv", "cajerotuani/movements.csv", "cajerotuani/temp.csv");
 
     execCAJERO(caj);
 
