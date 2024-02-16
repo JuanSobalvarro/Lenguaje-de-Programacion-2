@@ -6,11 +6,9 @@
             "command": "gcc",
             "args": [
                 "-o",
-                "cajerotuani/main.exe",
+                "./bubbleSort/${fileBasenameNoExtension}.exe",
                 "${file}",
-                "${workspaceFolder}\\uwunya\\menu\\menu.c",
-                "${workspaceFolder}\\uwunya\\utilities\\utilities.c",
-                "${workspaceFolder}\\cajerotuani\\cajero.c"
+                "${workspaceFolder}\\uwunya\\utilities\\utilities.c"
                 
             ],
             "options": {
