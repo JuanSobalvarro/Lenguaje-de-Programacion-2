@@ -78,9 +78,15 @@ void addNote(NOTES *n)
 
 void eraseNote(NOTES *n)
 {   
+    printf("==============Borrar nota==============\n");
     getchar();
     char input;
     int idx;
+    if (n->nCurrentNotes == 0)
+    {
+        printf("No hay notas para borrar\n");
+        return;
+    }
     do
     {
         system("CLS");
@@ -93,7 +99,7 @@ void eraseNote(NOTES *n)
         scanf("%c", &input);
         getchar();
         idx = input - 48;
-    } while (idx <= 0 || idx > n->nCurrentNotes+1);
+    } while (idx <= 0 || idx > n->nCurrentNotes);
     
     // remove cahraceter from array
     idx--; // - 1 so it starts at 0 in any case
@@ -151,6 +157,39 @@ char validChord(char *chord, int len)
             break;
         }
     }
+    return fundamental;
+}
+
+char *getChord(size_t *len)
+{
+    char *chord = malloc(sizeof(char) * 4);
+    *len = 0;
+    while (*len != 3)
+    {
+        printf("Inserte su acorde(example: CDE): \n");
+        //chord = inputString(stdin, len);
+        scanf("%s", chord);
+        *len = 3;
+        getchar();
+        printf("\nstring %s with len %d\n", chord, *len);
+        for (int i = 0; i < *len; i++)
+        {
+            printf("\n%c at %p\n", chord[i], &chord[i]);
+            // if char passes G substract 32
+            if (chord[i] > 71)
+            {
+                chord[i] -= 32;
+            }
+            // if it is less than A ask again
+            if (chord[i] < 65)
+            {
+                *len = 0;
+                continue;
+            }
+        }
+    }
+
+    return chord;
 }
 
 /*
@@ -161,7 +200,6 @@ void constructChord(NOTES *n)
 {
     getchar();
     printf("==============Construir acorde==============\n");
-    size_t len;
 
     printf("Notas validas: ");
     for (int i = 0; i < n->nCurrentNotes; i++)
@@ -170,13 +208,10 @@ void constructChord(NOTES *n)
     }
     printf("\n");
 
+    size_t len = 0;
     char *uwu;
-    do
-    {
-        printf("Inserte su acorde(example: CDE): \n");
-        uwu = inputString(stdin, &len);
-        //printf("\nstring %s with len %d\n", uwu, len);
-    } while (len != 3);
+    
+    uwu = getChord(&len);
 
     // chequear si esta agregado en array
     for (int i = 0; i < len; i++)
