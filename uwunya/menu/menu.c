@@ -68,6 +68,9 @@ void loopMenu(MENU *menu)
             return;
         }
 
+        printf("selecting %d\n", select);
+        getchar();
+
         system("CLS");
 
         printf("Executing %s\n\n", menu->func_names[select]);

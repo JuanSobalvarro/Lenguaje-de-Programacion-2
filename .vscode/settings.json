@@ -8,6 +8,7 @@
         "time.h": "c",
         "cajero.h": "c",
         "array": "c",
-        "string": "c"
+        "string": "c",
+        "notes.h": "c"
     }
 }
