@@ -80,7 +80,6 @@ int isNum(char *s)
     }
 
     return 1;
-
 }
 
 void *copymemory(void *dest, const void *src, size_t count)
@@ -159,5 +158,4 @@ int compStr(char *str1, char *str2)
     }
 
     return 1;
-
 }

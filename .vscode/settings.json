@@ -9,6 +9,8 @@
         "cajero.h": "c",
         "array": "c",
         "string": "c",
-        "notes.h": "c"
+        "notes.h": "c",
+        "sstream": "c",
+        "typeinfo": "c"
     }
 }

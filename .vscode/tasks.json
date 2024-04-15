@@ -2,14 +2,12 @@
     "tasks": [
         {
             "type": "cppbuild",
-            "label": "BUILD: build with menu.c",
+            "label": "BUILD: c with GCC",
             "command": "gcc",
             "args": [
-                "-o",
-                "./notasMusicales/${fileBasenameNoExtension}.exe",
                 "${file}",
-                "./notasMusicales/notes.c",
-                "./notasMusicales/menu.c",
+                "-o",
+                "./estructurasDinamicas/${fileDirnameBasename}/${fileBasenameNoExtension}.exe"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"
